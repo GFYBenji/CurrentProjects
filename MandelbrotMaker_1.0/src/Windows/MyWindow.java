@@ -14,16 +14,7 @@ import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
 public class MyWindow extends JFrame implements ActionListener, ChangeListener, WindowListener, MouseMotionListener, MouseListener {
-	public MyWindow(MyImage image) {
-		windowHeight = image.getHeight();
-		windowWidth = image.getWidth();
-		I = makeImage(image);
-		initComponents();
-		
-		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		this.setResizable(false);
-		this.setVisible(true);
-	}
+	private displayConsole dc;
 	
 	
 	//Image variables
@@ -33,11 +24,11 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	private int x1, y1;
 	private Calculator calc;
 	
-	
 	//Windows
 	private ColourPicker cl;
 	private importFromDBWindow dbIn;
 	private customJuliaWindow cJw;
+	private JButton lblColour1Val, lblColour2Val, repaintImage, showHideConsole;
 	
 	//Window Components
 	private JMenuBar mainMenuBar;
@@ -51,10 +42,22 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	private  JTextField txtIterationsVal;
 	private JLabel lblGradient, lblColour1, lblColour2;
 	private JCheckBox checkGradient;
-	private JButton lblColour1Val, lblColour2Val, repaintImage;
+	private boolean console = false;
 	//Used to determine which button was pressed
 	private String action;
-
+	
+	public MyWindow(MyImage image) {
+		dc = new displayConsole();
+		windowHeight = image.getHeight();
+		windowWidth = image.getWidth();
+		I = makeImage(image);
+		initComponents();
+		
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		this.setResizable(false);
+		this.setVisible(true);
+	}
+	
 	private void initComponents() {
 
 		mainMenuBar = new JMenuBar();
@@ -90,6 +93,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		lblColour2Val = new JButton();
 		repaintImage = new JButton();
 		txtIterationsVal = new JTextField();
+		showHideConsole = new JButton();
 
 		// ======== this ========
 		Container contentPane = getContentPane();
@@ -300,6 +304,14 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 				repaintImage.setActionCommand("repaint");
 				infoPanel.add(repaintImage, new GridBagConstraints(0, 12, 2, 1, 0.0, .0, GridBagConstraints.CENTER,
 						GridBagConstraints.BOTH, new Insets(0, 0, 0, 5), 0, 0));
+				
+				// ---- showHideConsole ----
+				showHideConsole.setText("Show/Hide Console");
+				showHideConsole.setOpaque(true);
+				showHideConsole.setToolTipText("Shows or hides the console in a window");
+				showHideConsole.addActionListener(this);
+				showHideConsole.setActionCommand("show");
+				infoPanel.add(showHideConsole, new GridBagConstraints(0, 13, 2, 1, 0.0, .0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 5), 0, 0));
 			}
 			windowPanel.add(infoPanel);
 		}
@@ -436,10 +448,15 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			mainMenu mm = new mainMenu();
 			mm.addWindowListener(this);
 		}
-
+		
 		if(e.getSource() == fromDatabase){
 			dbIn = new importFromDBWindow();
 			dbIn.addWindowListener(this);
+		}
+		
+		if (e.getSource() == showHideConsole) {
+			console = !console;
+			dc.setVisible(console);
 		}
 
 		if(e.getSource() == repaintImage) {
