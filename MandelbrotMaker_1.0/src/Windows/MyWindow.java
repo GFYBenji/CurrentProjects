@@ -57,7 +57,6 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		this.setResizable(false);
 		this.setVisible(true);
 	}
-	
 	private void initComponents() {
 
 		mainMenuBar = new JMenuBar();
