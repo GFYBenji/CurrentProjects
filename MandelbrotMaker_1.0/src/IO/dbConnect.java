@@ -2,11 +2,7 @@ package IO;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class dbConnect {
 
@@ -32,16 +28,16 @@ public class dbConnect {
 		dbURL = "jdbc:ucanaccess://" + msAccDB;
 	}
 	
-	public void newEntry(Object[] data) {
+	public void newEntry(Object[] data, String name) {
 		Connection connection = null;
 		Statement statement = null;
 		ResultSet resultSet = null;
 		try {
 			connection = DriverManager.getConnection(dbURL);
 			statement = connection.createStatement();
-			boolean success = statement.execute("INSERT INTO FRACTALS(Fractal, StartX, StartY, EndX, Iterations, Width, Height)"+
-							" VALUES('"+data[0]+"',"+data[1]+","+data[2]+","+data[3]+","+data[4]+","+data[5]+","+data[6]+")");
-			if(!!!!success) {
+			boolean success = statement.execute("INSERT INTO FRACTALS(Fractal, XStart, YStart, XEnd, Iterations, Width, Height)"+
+							" VALUES('"+name+"',"+data[0]+","+data[1]+","+data[2]+","+data[3]+","+data[4]+","+data[5]+")");
+			if(success) {
 				System.out.println("Successfully added row...");
 			}
 		
@@ -51,7 +47,6 @@ public class dbConnect {
 		}finally {
 			try {
 				if(connection != null) {
-					resultSet.close();
 					statement.close();
 					connection.close();
 				}

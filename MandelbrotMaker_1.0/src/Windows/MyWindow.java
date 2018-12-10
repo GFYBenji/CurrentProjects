@@ -1,33 +1,22 @@
 package Windows;
 
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.util.Arrays;
+import Calculations.Calculator;
+import Calculations.MyImage;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import Calculations.Calculator;
-import Calculations.MyImage;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
 public class MyWindow extends JFrame implements ActionListener, ChangeListener, WindowListener, MouseMotionListener, MouseListener {
-	public MyWindow(int iter, int width, int height) {
-		iterations = iter;
-		windowHeight = height;
-		windowWidth = width;
-		I = new MyImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_RGB, iterations);
-		I.calculatePlot(-2, 2, 2);
+	public MyWindow(MyImage image) {
+		iterations = image.getIters();
+		windowHeight = image.getHeight();
+		windowWidth = image.getWidth();
+		I = image;
 		System.out.println("Width:"+windowWidth+",Height:"+windowHeight+",Iterations:"+iterations);
 		makeColours();
 		initComponents();
@@ -147,19 +136,6 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 		// ======== windowPanel ========
 		{
-
-			// JFormDesigner evaluation mark
-			/*
-			 * windowPanel.setBorder(new javax.swing.border.CompoundBorder( new
-			 * javax.swing.border.TitledBorder(new javax.swing.border.EmptyBorder(0, 0, 0,
-			 * 0), "", javax.swing.border.TitledBorder.CENTER,
-			 * javax.swing.border.TitledBorder.BOTTOM, new java.awt.Font("Dialog",
-			 * java.awt.Font.BOLD, 12), java.awt.Color.red), windowPanel.getBorder()));
-			 * windowPanel.addPropertyChangeListener(new
-			 * java.beans.PropertyChangeListener(){public void
-			 * propertyChange(java.beans.PropertyChangeEvent
-			 * e){if("border".equals(e.getPropertyName()))throw new RuntimeException();}});
-			 */
 			windowPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 			// ---- lblMainImage ----
@@ -334,18 +310,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		setLocationRelativeTo(getOwner());
 	}
 
-	private BufferedImage makeImage() {
-		I.debug();
-		//Calculator calc = new Calculator(image, colourArray, 0.7885*Math.cos(Math.toRadians(180)), 0.7885*Math.sin(Math.toRadians(180)));
-		Calculator calc = new Calculator(I, colourArray);
-		int[][] tmp = calc.returnImageAsArray();
-		for(int x = 0; x < windowWidth; x++) {
-			for(int y = 0; y < windowHeight; y++) {
-				I.setRGB(x, y, tmp[x][y]);
-			}
-		}
-		return I;
-	}
+	
 	
 	@Override
 	public void stateChanged(ChangeEvent e) {
@@ -379,8 +344,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		}
 		if (e.getSource() == toDB) {
 			System.out.println("Saving to DB");
-			
-			//Get current
+			new exportToDBWindow(I);
 		}
 		if (e.getSource() == toFile) {
 			System.out.println("Saving to File");
@@ -389,6 +353,15 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		if (e.getSource() == toVideo) {
 			System.out.println("Saving to Video");
 			
+		}
+		if(e.getSource() == newJuliaset){
+
+		}
+		if(e.getSource() == newMandelbrot){
+
+		}
+		if(e.getSource() == fromDatabase){
+
 		}
 		if(e.getSource() == repaintImage) {
 			makeColours();
@@ -435,7 +408,18 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		repaint();
 	}
 
-
+	private BufferedImage makeImage() {
+		I.debug();
+		//Calculator calc = new Calculator(image, colourArray, 0.7885*Math.cos(Math.toRadians(180)), 0.7885*Math.sin(Math.toRadians(180)));
+		Calculator calc = new Calculator(I, colourArray);
+		int[][] tmp = calc.returnImageAsArray();
+		for(int x = 0; x < windowWidth; x++) {
+			for(int y = 0; y < windowHeight; y++) {
+				I.setRGB(x, y, tmp[x][y]);
+			}
+		}
+		return I;
+	}
 	
 	private void makeColours() {
         colourArray = new int[iterations];
