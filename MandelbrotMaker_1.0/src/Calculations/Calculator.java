@@ -14,9 +14,9 @@ public class Calculator {
 	private int[] colours;
 	private double cRe, cIm;
 	
-	public Calculator(MyImage I, int[] colours) {
+	public Calculator(MyImage image, int[] colours) {
 		this.colours = colours;
-		this.I = I;
+		I = image;
 		MAX_ITER = I.getIters();
 		width = I.getWidth();
 		height = I.getHeight();
