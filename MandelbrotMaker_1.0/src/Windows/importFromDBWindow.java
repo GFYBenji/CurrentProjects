@@ -26,6 +26,7 @@ public class importFromDBWindow extends JFrame implements ActionListener {
     private MyImage I;
     private String[] columnNames = {"ID","Name","X-Start","Y-Start","X-End","Iterations","Width","Height"};
     dbConnect db = new dbConnect();
+    private int index;
 
     public importFromDBWindow() {
         initComponents();
@@ -106,10 +107,15 @@ public class importFromDBWindow extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == okButton){
             dbConnect db = new dbConnect();
-
+            index = (int)dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 0);
+            this.dispose();
         }
         if(e.getSource() == cancelButton){
 
         }
+    }
+
+    public int getIndex(){
+        return index;
     }
 }

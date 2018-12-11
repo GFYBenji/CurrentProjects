@@ -1,5 +1,6 @@
 package Calculations;
-import java.awt.Color;
+
+import java.awt.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -9,7 +10,7 @@ public class Calculator {
 	private int[][] imageArray;
 	private int MAX_ITER;
 	private MyImage I;
-	private int width, height, isMandel;
+	private int width, height;
 	private int[] colours;
 	private double cRe, cIm;
 	
@@ -19,7 +20,7 @@ public class Calculator {
 		MAX_ITER = I.getIters();
 		width = I.getWidth();
 		height = I.getHeight();
-		isMandel = 1;
+		makeAsMandel();
 	}
 	
 	public Calculator(MyImage I, int[] colours, double cRe, double cIm) {
@@ -28,60 +29,63 @@ public class Calculator {
 		MAX_ITER = I.getIters();
         width = I.getWidth();
         height = I.getHeight();
-        isMandel = 0;
         this.cRe = cRe;
         this.cIm = cIm;
+        makeAsJulia();
 }
-	
+
 	public int[][] returnImageAsArray(){
+		return imageArray;
+	}
+
+	private void makeAsJulia(){
 		final long start = System.currentTimeMillis();
 		imageArray = new int[width][height];
 		int columnWidth = width/cores;
 		ExecutorService es = Executors.newCachedThreadPool();
-		switch(isMandel) {
-		case 0:
-			
-			for(int i = 0; i < cores; i++) {
-				final int startCol = i*columnWidth;
-				es.execute(new Runnable() {
-					public void run() {
-						makeAsJulia(imageArray, startCol, startCol + columnWidth);
-					}
-				});
-			}
-			es.shutdown();
-			try {
-				boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
-			}catch(Exception e) {
-				e.printStackTrace();
-			}
-			break;
-		case 1:
-			
-			for(int i = 0; i < cores; i++) {
-				final int startCol = i*columnWidth;
-				es.execute(new Runnable() {
-					public void run() {
-						makeAsMandel(imageArray, startCol, startCol + columnWidth);
-					}
-				});
-			}
-			es.shutdown();
-			try {
-				boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
-			}catch(Exception e) {
-				e.printStackTrace();
-			}
-			break;
-			
-		default: break;
+		for(int i = 0; i < cores; i++) {
+			final int startCol = i*columnWidth;
+			es.execute(new Runnable() {
+				public void run() {
+					juliaCalc(imageArray, startCol, startCol + columnWidth);
+				}
+			});
+		}
+		es.shutdown();
+		try {
+			boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		final long end = System.currentTimeMillis() - start;
+		System.out.println("Time Taken: " + end);
+	}
+
+	private void makeAsMandel(){
+		final long start = System.currentTimeMillis();
+		imageArray = new int[width][height];
+		int columnWidth = width/cores;
+		ExecutorService es = Executors.newCachedThreadPool();
+		for(int i = 0; i < cores; i++) {
+			final int startCol = i*columnWidth;
+			es.execute(new Runnable() {
+				public void run() {
+					mandelCalc(imageArray, startCol, startCol + columnWidth);
+				}
+			});
+		}
+		es.shutdown();
+		try {
+			boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
+		}catch(Exception e) {
+			e.printStackTrace();
 		}
 		final long end = System.currentTimeMillis() - start;
 		System.out.println("Time Taken: " + end);
-		return imageArray;
 	}
 	
-	private void makeAsMandel(int[][] arr, int xStart, int xEnd) {
+	private void mandelCalc(int[][] arr, int xStart, int xEnd) {
 		double cIm, cRe;
 		double zIm, zRe, tmp;
 		for(int y = 0; y < I.getHeight(); y++){
@@ -106,7 +110,7 @@ public class Calculator {
         }
 	}
 	
-	private void makeAsJulia(int[][] arr, int xStart, int xEnd) {
+	private void juliaCalc(int[][] arr, int xStart, int xEnd) {
 		double zIm, zRe, tmp;
 		for(int y = 0; y < I.getHeight(); y++){
 	        double yStart = I.convertY(y); //convert Y up here to be 25% faster(at 200 iterations)

@@ -2,6 +2,7 @@ package Windows;
 
 import Calculations.Calculator;
 import Calculations.MyImage;
+import IO.dbConnect;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -46,6 +47,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	private JCheckBox checkGradient;
 	private JButton lblColour1Val, lblColour2Val, repaintImage;
 	private ColourPicker cl;
+	private importFromDBWindow dbIn;
 	private String action;
 
 	private void initComponents() {
@@ -310,8 +312,6 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		setLocationRelativeTo(getOwner());
 	}
 
-	
-	
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource() == checkGradient) {
@@ -358,10 +358,12 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 		}
 		if(e.getSource() == newMandelbrot){
-
+			new MyWindow(I);
+			this.dispose();
 		}
 		if(e.getSource() == fromDatabase){
-
+			dbIn = new importFromDBWindow();
+			dbIn.addWindowListener(this);
 		}
 		if(e.getSource() == repaintImage) {
 			makeColours();
@@ -375,8 +377,18 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	public void windowClosed(WindowEvent e) {
 		if (action.equals("colour1")) {
 			lblColour1Val.setBackground(cl.getColour());
-		} else if (action.equals("colour2")) {
+		}
+		if (action.equals("colour2")) {
 			lblColour2Val.setBackground(cl.getColour());
+		}
+
+		if (action.equals("Import from Database")){
+			dbConnect db = new dbConnect();
+			Object[] data = db.getEntry(dbIn.getIndex());
+			I = new MyImage((int)data[6],(int)data[7], BufferedImage.TYPE_INT_RGB, (int)data[5]);
+			I.calculatePlot(data);
+			new MyWindow(I);
+			this.dispose();
 		}
 
 	}

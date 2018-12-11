@@ -1,10 +1,6 @@
 package Calculations;
+
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
-import java.math.BigDecimal;
-import java.util.Hashtable;
 
 public class MyImage extends BufferedImage {
 
@@ -40,6 +36,20 @@ public class MyImage extends BufferedImage {
 			yStart = ys;
 			yEnd = ye;
 		}
+		plotHeight = yStart - yEnd;
+	}
+
+	public void calculatePlot(Object[] data){
+		xStart = (double)data[2];
+		xEnd = (double)data[3];
+		yStart = (double)data[4];
+		iters = (int)data[5];
+		windowWidth = (int)data[6];
+		windowHeight = (int)data[7];
+		//New calcs:
+		ratio = (double)windowWidth/windowHeight;
+		plotWidth = xEnd - xStart;
+		yEnd = (yStart *ratio - plotWidth)/ratio;
 		plotHeight = yStart - yEnd;
 	}
 
