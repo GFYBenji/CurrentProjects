@@ -67,14 +67,12 @@ public class dbConnect {
 			statement = connection.createStatement();
 			resultSet = statement.executeQuery("SELECT * FROM FRACTALS WHERE ID = " + rowIndex);
 			resultSet.next();
-			rowItems[0] = resultSet.getInt(1);
-			rowItems[1] = resultSet.getString(2);
-			rowItems[2] = resultSet.getDouble(3);
-			rowItems[3] = resultSet.getDouble(4);
-			rowItems[4] = resultSet.getDouble(5);
-			rowItems[5] = resultSet.getInt(6);
-			rowItems[6] = resultSet.getInt(7);
-			rowItems[7] = resultSet.getInt(8);
+			rowItems[0] = resultSet.getDouble(3);
+			rowItems[1] = resultSet.getDouble(4);
+			rowItems[2] = resultSet.getDouble(5);
+			rowItems[3] = resultSet.getInt(6);
+			rowItems[4] = resultSet.getInt(7);
+			rowItems[5] = resultSet.getInt(8);
 
 		} catch (SQLException e) {
 			e.printStackTrace();

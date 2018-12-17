@@ -3,6 +3,7 @@ package Windows;
 import Calculations.Calculator;
 import Calculations.MyImage;
 import IO.dbConnect;
+import IO.fileIO;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -10,16 +11,15 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 
 public class MyWindow extends JFrame implements ActionListener, ChangeListener, WindowListener, MouseMotionListener, MouseListener {
 	public MyWindow(MyImage image) {
-		iterations = image.getIters();
 		windowHeight = image.getHeight();
 		windowWidth = image.getWidth();
 		I = image;
-		System.out.println("Width:"+windowWidth+",Height:"+windowHeight+",Iterations:"+iterations);
 		makeColours();
+		Calculator calc = new Calculator(I, colourArray);
+		I = makeImage(calc.returnImageAsArray(), I);
 		initComponents();
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setResizable(false);
@@ -28,21 +28,21 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	
 	
 	//Image variables
-	private int windowWidth, windowHeight, iterations;
+	private int windowWidth, windowHeight;
 	private int[] colourArray;
 	private MyImage I;
 	private int x1, y1;
 	
 	//Window Components
 	private JMenuBar mainMenuBar;
-	private JMenu Save;
+	private JMenu Save,New;
 	private JMenuItem toFile, toVideo, toDB;
-	private JMenu New;
 	private JMenuItem newJuliaset, newMandelbrot, fromDatabase;
 	private JPanel windowPanel, infoPanel;
 	private JLabel lblMainImage, lblPlotArea, lblXStart, lblXStartVal, lblXEnd, lblXEndVal, lblYStart, lblYStartVal,
 			lblYEnd, lblYEndVal;
 	private JLabel lblScreenInfo, lblIterations, lblImageSize, lblColourOptions;
+	private  JTextField txtIterationsVal;
 	private JLabel lblGradient, lblColour1, lblColour2;
 	private JCheckBox checkGradient;
 	private JButton lblColour1Val, lblColour2Val, repaintImage;
@@ -84,6 +84,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		lblColour2 = new JLabel();
 		lblColour2Val = new JButton();
 		repaintImage = new JButton();
+		txtIterationsVal = new JTextField();
 
 		// ======== this ========
 		Container contentPane = getContentPane();
@@ -144,7 +145,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			lblMainImage.setText("text");
 			lblMainImage.setPreferredSize(new Dimension(windowWidth, windowHeight));
 			lblMainImage.setRequestFocusEnabled(false);
-			lblMainImage.setIcon(new ImageIcon(makeImage()));
+			lblMainImage.setIcon(new ImageIcon(I));
 			lblMainImage.addMouseListener(this);
 			lblMainImage.addMouseMotionListener(this);
 			windowPanel.add(lblMainImage);
@@ -220,11 +221,16 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 						GridBagConstraints.BOTH, new Insets(0, 0, 5, 5), 0, 0));
 
 				// ---- lblIterations ----
-				lblIterations.setText("Iterations: 500");
+				lblIterations.setText("Iterations:");
 				lblIterations.setFont(new Font("Tahoma", Font.PLAIN, 14));
-				infoPanel.add(lblIterations, new GridBagConstraints(0, 6, 4, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-						GridBagConstraints.BOTH, new Insets(0, 0, 5, 0), 0, 0));
-
+				infoPanel.add(lblIterations, new GridBagConstraints(0, 6, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
+						GridBagConstraints.BOTH, new Insets(0, 0, 5, 5), 0, 0));
+				
+				// ---- TxtIterations ----
+				txtIterationsVal.setText(String.valueOf(I.getIters()));
+				infoPanel.add(txtIterationsVal, new GridBagConstraints(1, 6, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
+						GridBagConstraints.BOTH, new Insets(0, 0, 5, 5), 0, 0));
+				
 				// ---- lblImageSize ----
 				lblImageSize.setText("Image Size: ");
 				lblImageSize.setFont(new Font("Tahoma", Font.PLAIN, 14));
@@ -322,9 +328,9 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 				// lblColour2Val.setBackground(Color.blue);
 			} else {
 				lblColour1Val.setEnabled(false);
-				// lblColour1Val.setBackground(Color.darkGray);
+				
 				lblColour2Val.setEnabled(false);
-				// lblColour2Val.setBackground(Color.darkGray);
+				
 			}
 		}
 
@@ -343,16 +349,13 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			cl.addWindowListener(this);
 		}
 		if (e.getSource() == toDB) {
-			System.out.println("Saving to DB");
 			new exportToDBWindow(I);
 		}
 		if (e.getSource() == toFile) {
-			System.out.println("Saving to File");
-			
+			new fileIO().saveAsImage(I);
 		}
 		if (e.getSource() == toVideo) {
-			System.out.println("Saving to Video");
-			
+			//To Video
 		}
 		if(e.getSource() == newJuliaset){
 
@@ -366,8 +369,16 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			dbIn.addWindowListener(this);
 		}
 		if(e.getSource() == repaintImage) {
+			String tmp = txtIterationsVal.getText().replaceAll("\\D", "").replace(" ", "");
+			
+			System.out.println("iters:"+txtIterationsVal.getText());
+			I.setIters(Integer.valueOf(txtIterationsVal.getText()));
+
 			makeColours();
-			lblMainImage.setIcon(new ImageIcon(makeImage()));
+
+			Calculator calc = new Calculator(I, colourArray);
+			I = makeImage(calc.returnImageAsArray(), I);
+			lblMainImage.setIcon(new ImageIcon(I));
 			repaint();
 		}
 
@@ -385,22 +396,21 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		if (action.equals("Import from Database")){
 			dbConnect db = new dbConnect();
 			Object[] data = db.getEntry(dbIn.getIndex());
-			I = new MyImage((int)data[6],(int)data[7], BufferedImage.TYPE_INT_RGB, (int)data[5]);
+			I = new MyImage((int)data[4],(int)data[5], BufferedImage.TYPE_INT_RGB, (int)data[3]);
 			I.calculatePlot(data);
 			new MyWindow(I);
 			this.dispose();
 		}
 
 	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-
-	}
-
+	
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		System.out.println("clicked");
+		x1 = e.getX();
+		y1 = e.getY();
+		Calculator calc = new Calculator(I, colourArray, I.convertX(x1), I.convertY(y1));
+		I = makeImage(calc.returnImageAsArray(), I);
+		new MyWindow(I);
 	}
 
 	@Override
@@ -412,33 +422,27 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		int x2 = e.getX() ;//- lblMainImage.getX();
-		System.out.println("x1:"+x1+",x2:"+x2+",y1:"+y1);
-		I.calculatePlot(I.convertX(x1),I.convertX(x2), I.convertY(y1));
-		I.debug();
-		makeImage();
-		repaint();
+		int x2 = e.getX();
+		
 	}
 
-	private BufferedImage makeImage() {
-		I.debug();
-		//Calculator calc = new Calculator(image, colourArray, 0.7885*Math.cos(Math.toRadians(180)), 0.7885*Math.sin(Math.toRadians(180)));
-		Calculator calc = new Calculator(I, colourArray);
-		int[][] tmp = calc.returnImageAsArray();
-		for(int x = 0; x < windowWidth; x++) {
-			for(int y = 0; y < windowHeight; y++) {
-				I.setRGB(x, y, tmp[x][y]);
+	public MyImage makeImage(int[][] arr, MyImage I){
+		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), BufferedImage.TYPE_INT_RGB, I.getIters());
+		Itmp.calculatePlot(I.getPlotData());
+		for(int x = 0; x < windowWidth; x++){
+			for(int y = 0; y < windowHeight; y++){
+				Itmp.setRGB(x,y, arr[x][y]);
 			}
 		}
-		return I;
+		return Itmp;
 	}
 	
 	private void makeColours() {
-        colourArray = new int[iterations];
+        colourArray = new int[I.getIters()];
 
 		if(checkGradient == null){
-			for (int i = 0; i < iterations; i++) {
-				colourArray[i] = Color.HSBtoRGB((float) i / iterations, 0.5F, 1);
+			for (int i = 0; i < I.getIters(); i++) {
+				colourArray[i] = Color.HSBtoRGB((float) i / I.getIters(), 0.5F, 1);
 			}
 		}else if(checkGradient.isSelected()){
 			Color cl1 = lblColour1Val.getBackground();
@@ -447,13 +451,10 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			float[] hsb1 = Color.RGBtoHSB(cl1.getRed(), cl1.getGreen(), cl1.getBlue(), null);
 			float[] hsb2 = Color.RGBtoHSB(cl2.getRed(), cl2.getGreen(), cl2.getBlue(), null);
 
-			System.out.println("Colour 1:"+Arrays.toString(hsb1));
-			System.out.println("Colour 2:"+Arrays.toString(hsb2));
-
-			colourArray = makeGradient(hsb1, hsb2, iterations);
+			colourArray = makeGradient(hsb1, hsb2, I.getIters());
 		}else{
-			for (int i = 0; i < iterations; i++) {
-				colourArray[i] = Color.HSBtoRGB((float) i / iterations, 0.5F, 1);
+			for (int i = 0; i < I.getIters(); i++) {
+				colourArray[i] = Color.HSBtoRGB((float) i / I.getIters(), 0.5F, 1);
 			}
 		}
     }
@@ -479,6 +480,12 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	}
 
 	// region Unused Methods
+	
+	@Override
+	public void mouseMoved(MouseEvent e) {
+	
+	}
+	
 	@Override
 	public void windowActivated(WindowEvent e) {
 		// TODO Auto-generated method stub

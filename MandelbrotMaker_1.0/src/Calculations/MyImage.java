@@ -1,6 +1,7 @@
 package Calculations;
 
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
 public class MyImage extends BufferedImage {
 
@@ -40,17 +41,22 @@ public class MyImage extends BufferedImage {
 	}
 
 	public void calculatePlot(Object[] data){
-		xStart = (double)data[2];
-		xEnd = (double)data[3];
-		yStart = (double)data[4];
-		iters = (int)data[5];
-		windowWidth = (int)data[6];
-		windowHeight = (int)data[7];
+		System.out.println("Data:"+ Arrays.toString(data));
+		xStart = (double)data[0];
+		yStart = (double)data[1];
+		xEnd = (double)data[2];
+		iters = (int)data[3];
+		windowWidth = (int)data[4];
+		windowHeight = (int)data[5];
 		//New calcs:
 		ratio = (double)windowWidth/windowHeight;
 		plotWidth = xEnd - xStart;
 		yEnd = (yStart *ratio - plotWidth)/ratio;
 		plotHeight = yStart - yEnd;
+	}
+	
+	public void setIters(int val){
+		iters = val;
 	}
 
 	public int getIters() {
@@ -79,6 +85,7 @@ public class MyImage extends BufferedImage {
     }
 	
 	public void debug() {
+		System.out.println("Iterations: " + iters+", Width: "+windowWidth+", Height:"+windowHeight);
 		System.out.println("Ratio: " + ratio + ", Plot Ratio: " + plotWidth/plotHeight);
 		System.out.println("Plot Width: " + plotWidth + ", Plot Height: " + plotHeight);
 		System.out.println("Start x,y: " + xStart + "," + yStart +" | End x,y: " + xEnd + "," + yEnd);
