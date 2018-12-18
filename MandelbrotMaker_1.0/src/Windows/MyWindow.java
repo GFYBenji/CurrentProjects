@@ -405,9 +405,16 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	public void mouseClicked(MouseEvent e) {
 		x1 = e.getX();
 		y1 = e.getY();
-		Calculator calc = new Calculator(I, colourArray, I.convertX(x1), I.convertY(y1));
-		I = makeImage(I);
-		new MyWindow(I);
+		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), BufferedImage.TYPE_INT_RGB, I.getIters());
+		Itmp.calculatePlot(I.getPlotData());
+		Calculator calc = new Calculator(Itmp, colourArray, I.convertX(x1), I.convertY(y1));
+		int[][] tmp = calc.returnImageAsArray();
+		for(int x = 0; x < I.getWidth(); x++){
+			for(int y = 0; y < I.getHeight(); y++){
+				Itmp.setRGB(x,y,tmp[x][y]);
+			}
+		}
+		new juliaWindow(Itmp);
 	}
 
 	@Override
@@ -420,10 +427,15 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		int x2 = e.getX();
-		I.calculatePlot(I.convertX(x1), I.convertX(x2), I.convertY(y1));
-		I = makeImage(I);
-		lblMainImage.setIcon(new ImageIcon(I));
-		repaint();
+		if(x2 == x1){
+		
+		}else{
+			I.calculatePlot(I.convertX(x1), I.convertX(x2), I.convertY(y1));
+			I = makeImage(I);
+			lblMainImage.setIcon(new ImageIcon(I));
+			repaint();
+		}
+		
 		
 	}
 
