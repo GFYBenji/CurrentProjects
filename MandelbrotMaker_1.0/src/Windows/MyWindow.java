@@ -11,6 +11,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
 public class MyWindow extends JFrame implements ActionListener, ChangeListener, WindowListener, MouseMotionListener, MouseListener {
 	public MyWindow(MyImage image) {
@@ -30,6 +31,11 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	private MyImage I;
 	private int x1, y1;
 	
+	//Windows
+	private ColourPicker cl;
+	private importFromDBWindow dbIn;
+	private customJuliaWindow cJw;
+	
 	//Window Components
 	private JMenuBar mainMenuBar;
 	private JMenu Save,New;
@@ -43,8 +49,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	private JLabel lblGradient, lblColour1, lblColour2;
 	private JCheckBox checkGradient;
 	private JButton lblColour1Val, lblColour2Val, repaintImage;
-	private ColourPicker cl;
-	private importFromDBWindow dbIn;
+	
 	private String action;
 
 	private void initComponents() {
@@ -355,7 +360,9 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			//To Video
 		}
 		if(e.getSource() == newJuliaset){
-
+			cJw = new customJuliaWindow();
+			cJw.addWindowListener(this);
+			
 		}
 		if(e.getSource() == newMandelbrot){
 			I.calculatePlot(-2,2,2);
@@ -393,21 +400,24 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		if (action.equals("Import from Database")){
 			dbConnect db = new dbConnect();
 			Object[] data = db.getEntry(dbIn.getIndex());
+			System.out.println("Data from DB:" + Arrays.toString(data));
 			I = new MyImage((int)data[4],(int)data[5], BufferedImage.TYPE_INT_RGB, (int)data[3]);
 			I.calculatePlot(data);
 			new MyWindow(I);
 			this.dispose();
 		}
+		
+		if(action.equals("New Juliaset")){
+			makeJulia(cJw.getX1(), cJw.getY1());
+		}
 
 	}
 	
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		x1 = e.getX();
-		y1 = e.getY();
+	protected void makeJulia(double x1, double y1){
+		
 		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), BufferedImage.TYPE_INT_RGB, I.getIters());
 		Itmp.calculatePlot(I.getPlotData());
-		Calculator calc = new Calculator(Itmp, colourArray, I.convertX(x1), I.convertY(y1));
+		Calculator calc = new Calculator(Itmp, colourArray, x1, y1);
 		int[][] tmp = calc.returnImageAsArray();
 		for(int x = 0; x < I.getWidth(); x++){
 			for(int y = 0; y < I.getHeight(); y++){
@@ -415,6 +425,13 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			}
 		}
 		new juliaWindow(Itmp);
+	}
+	
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		x1 = e.getX();
+		y1 = e.getY();
+		makeJulia(I.convertX(x1),I.convertY(y1));
 	}
 
 	@Override

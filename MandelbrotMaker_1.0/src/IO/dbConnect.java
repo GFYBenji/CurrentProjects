@@ -60,7 +60,7 @@ public class dbConnect {
 		Connection connection = null;
 		Statement statement = null;
 		ResultSet resultSet = null;
-		Object[] rowItems = new Object[tableColumns];
+		Object[] rowItems = new Object[tableColumns -2];
 		
 		try {
 			connection = DriverManager.getConnection(dbURL);
@@ -68,16 +68,16 @@ public class dbConnect {
 			resultSet = statement.executeQuery("SELECT * FROM FRACTALS WHERE ID = " + rowIndex);
 			resultSet.next();
 			
-			/*rowItems[0] = resultSet.getDouble(3);
+			rowItems[0] = resultSet.getDouble(3);
 			rowItems[1] = resultSet.getDouble(4);
 			rowItems[2] = resultSet.getDouble(5);
 			rowItems[3] = resultSet.getInt(6);
 			rowItems[4] = resultSet.getInt(7);
-			rowItems[5] = resultSet.getInt(8);*/
+			rowItems[5] = resultSet.getInt(8);
 			
-			for(int i = 0; i < rowItems.length; i++){
-				rowItems[i] = resultSet.getObject(i+2);
-			}
+			/*for(int i = 0; i < 6; i++){
+				rowItems[i] = resultSet.getObject(i+3); //Doesn't work as for some reason Java thinks is a double when is object and then cannot convert to int
+			}*/
 
 		} catch (SQLException e) {
 			e.printStackTrace();
