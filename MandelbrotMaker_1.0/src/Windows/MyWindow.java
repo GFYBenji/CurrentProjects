@@ -16,10 +16,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	public MyWindow(MyImage image) {
 		windowHeight = image.getHeight();
 		windowWidth = image.getWidth();
-		I = image;
-		makeColours();
-		Calculator calc = new Calculator(I, colourArray);
-		I = makeImage(calc.returnImageAsArray(), I);
+		I = makeImage(image);
 		initComponents();
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setResizable(false);
@@ -361,6 +358,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 		}
 		if(e.getSource() == newMandelbrot){
+			I.calculatePlot(-2,2,2);
 			new MyWindow(I);
 			this.dispose();
 		}
@@ -374,10 +372,9 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			System.out.println("iters:"+txtIterationsVal.getText());
 			I.setIters(Integer.valueOf(txtIterationsVal.getText()));
 
-			makeColours();
+			makeColours(I.getIters());
 
-			Calculator calc = new Calculator(I, colourArray);
-			I = makeImage(calc.returnImageAsArray(), I);
+			I = makeImage(I);
 			lblMainImage.setIcon(new ImageIcon(I));
 			repaint();
 		}
@@ -409,7 +406,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		x1 = e.getX();
 		y1 = e.getY();
 		Calculator calc = new Calculator(I, colourArray, I.convertX(x1), I.convertY(y1));
-		I = makeImage(calc.returnImageAsArray(), I);
+		I = makeImage(I);
 		new MyWindow(I);
 	}
 
@@ -423,26 +420,34 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		int x2 = e.getX();
+		I.calculatePlot(I.convertX(x1), I.convertX(x2), I.convertY(y1));
+		I = makeImage(I);
+		lblMainImage.setIcon(new ImageIcon(I));
+		repaint();
 		
 	}
 
-	public MyImage makeImage(int[][] arr, MyImage I){
-		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), BufferedImage.TYPE_INT_RGB, I.getIters());
+	public MyImage makeImage(MyImage I){
+		MyImage Itmp = new MyImage(I.getWidth(),I.getHeight(), BufferedImage.TYPE_INT_RGB, I.getIters());
 		Itmp.calculatePlot(I.getPlotData());
+		makeColours(I.getIters());
+		Calculator calc = new Calculator(I, colourArray);
+		
+		int[][] tmp = calc.returnImageAsArray();
 		for(int x = 0; x < windowWidth; x++){
 			for(int y = 0; y < windowHeight; y++){
-				Itmp.setRGB(x,y, arr[x][y]);
+				Itmp.setRGB(x,y, tmp[x][y]);
 			}
 		}
 		return Itmp;
 	}
 	
-	private void makeColours() {
-        colourArray = new int[I.getIters()];
+	protected void makeColours(int iters) {
+        colourArray = new int[iters];
 
 		if(checkGradient == null){
-			for (int i = 0; i < I.getIters(); i++) {
-				colourArray[i] = Color.HSBtoRGB((float) i / I.getIters(), 0.5F, 1);
+			for (int i = 0; i < iters; i++) {
+				colourArray[i] = Color.HSBtoRGB((float) i / iters, 0.5F, 1);
 			}
 		}else if(checkGradient.isSelected()){
 			Color cl1 = lblColour1Val.getBackground();
@@ -453,8 +458,8 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 			colourArray = makeGradient(hsb1, hsb2, I.getIters());
 		}else{
-			for (int i = 0; i < I.getIters(); i++) {
-				colourArray[i] = Color.HSBtoRGB((float) i / I.getIters(), 0.5F, 1);
+			for (int i = 0; i < iters; i++) {
+				colourArray[i] = Color.HSBtoRGB((float) i / iters, 0.5F, 1);
 			}
 		}
     }

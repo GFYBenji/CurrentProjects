@@ -67,12 +67,17 @@ public class dbConnect {
 			statement = connection.createStatement();
 			resultSet = statement.executeQuery("SELECT * FROM FRACTALS WHERE ID = " + rowIndex);
 			resultSet.next();
-			rowItems[0] = resultSet.getDouble(3);
+			
+			/*rowItems[0] = resultSet.getDouble(3);
 			rowItems[1] = resultSet.getDouble(4);
 			rowItems[2] = resultSet.getDouble(5);
 			rowItems[3] = resultSet.getInt(6);
 			rowItems[4] = resultSet.getInt(7);
-			rowItems[5] = resultSet.getInt(8);
+			rowItems[5] = resultSet.getInt(8);*/
+			
+			for(int i = 0; i < rowItems.length; i++){
+				rowItems[i] = resultSet.getObject(i+2);
+			}
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -107,14 +112,17 @@ public class dbConnect {
 			data = new Object[numOfRows][tableColumns];
 			int currentRow = 0;
 			while(resultSet.next()) {
-				data[currentRow][0] = resultSet.getInt(1);
+				/*data[currentRow][0] = resultSet.getInt(1);
 				data[currentRow][1] = resultSet.getString(2);
 				data[currentRow][2] = resultSet.getDouble(3);
 				data[currentRow][3] = resultSet.getDouble(4);
 				data[currentRow][4] = resultSet.getDouble(5);
 				data[currentRow][5] = resultSet.getInt(6);
 				data[currentRow][6] = resultSet.getInt(7);
-				data[currentRow][7] = resultSet.getInt(8);
+				data[currentRow][7] = resultSet.getInt(8);*/
+				for(int i = 0; i < tableColumns; i++){
+					data[currentRow][i] = resultSet.getObject(i+1);
+				}
 				currentRow++;
 			}
 		} catch (SQLException e) {
