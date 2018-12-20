@@ -11,7 +11,7 @@ public class MyImage extends BufferedImage {
 	private double ratio;
 	private int iters;
 	
-	public MyImage(int width, int height, int imageType, int iterations) {
+	public MyImage(int width, int height, int iterations, int imageType) {
 		super(width, height, imageType);
 		windowWidth = width;
 		windowHeight = height;
@@ -28,7 +28,6 @@ public class MyImage extends BufferedImage {
 			xEnd = xe;
 		}
 		plotWidth = xEnd - xStart;
-		//plotWidth/ratio = plotHeight
 		double ye =(ys * ratio - plotWidth)/ratio;
 		if(ys < ye) {
 			yStart = ye;
@@ -63,13 +62,15 @@ public class MyImage extends BufferedImage {
 		return iters;
 	}
 	
+	public double getRatio() {
+		return ratio;
+	}
+	
 	public double convertX(int x) {
-        //x = x * plotX / windowX + startX;
         return x * plotWidth / windowWidth + xStart;
     }
 
     public double convertY(int y) {
-        //y = startY - y * plotY / windowY;
         return (yStart - y * plotHeight / windowHeight);
     }
     

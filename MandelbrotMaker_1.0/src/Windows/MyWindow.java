@@ -30,6 +30,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	private int[] colourArray;
 	private MyImage I;
 	private int x1, y1;
+	private Calculator calc;
 	
 	//Windows
 	private ColourPicker cl;
@@ -49,7 +50,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	private JLabel lblGradient, lblColour1, lblColour2;
 	private JCheckBox checkGradient;
 	private JButton lblColour1Val, lblColour2Val, repaintImage;
-	
+	//Used to determine which button was pressed
 	private String action;
 
 	private void initComponents() {
@@ -323,17 +324,9 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource() == checkGradient) {
-			if (checkGradient.isSelected()) {
-				lblColour1Val.setEnabled(true);
-				// lblColour1Val.setBackground(Color.red);
-				lblColour2Val.setEnabled(true);
-				// lblColour2Val.setBackground(Color.blue);
-			} else {
-				lblColour1Val.setEnabled(false);
-				
-				lblColour2Val.setEnabled(false);
-				
-			}
+			//Enable or disable the buttons used to select the two colours involved in the gradient
+			lblColour2Val.setEnabled(checkGradient.isSelected());
+			lblColour1Val.setEnabled(checkGradient.isSelected());
 		}
 
 	}
@@ -341,83 +334,101 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		action = e.getActionCommand();
-		System.out.println(action);
-		if (e.getSource() == lblColour1Val && lblColour1Val.isEnabled()) {
+		//Colour Gradient buttons
+		if (e.getSource() == lblColour2Val || e.getSource() == lblColour1Val) {
 			cl = new ColourPicker();
 			cl.addWindowListener(this);
 		}
-		if (e.getSource() == lblColour2Val && lblColour2Val.isEnabled()) {
-			cl = new ColourPicker();
-			cl.addWindowListener(this);
-		}
+
 		if (e.getSource() == toDB) {
 			new exportToDBWindow(I);
 		}
+
 		if (e.getSource() == toFile) {
 			new fileIO().saveAsImage(I);
 		}
 		if (e.getSource() == toVideo) {
 			//To Video
 		}
+
 		if(e.getSource() == newJuliaset){
 			cJw = new customJuliaWindow();
 			cJw.addWindowListener(this);
-			
 		}
+
 		if(e.getSource() == newMandelbrot){
-			I.calculatePlot(-2,2,2);
-			new MyWindow(I);
-			this.dispose();
+			mainMenu mm = new mainMenu();
+			mm.addWindowListener(this);
 		}
+
 		if(e.getSource() == fromDatabase){
 			dbIn = new importFromDBWindow();
 			dbIn.addWindowListener(this);
 		}
+
 		if(e.getSource() == repaintImage) {
 			String tmp = txtIterationsVal.getText().replaceAll("\\D", "").replace(" ", "");
 			
 			System.out.println("iters:"+txtIterationsVal.getText());
-			I.setIters(Integer.valueOf(txtIterationsVal.getText()));
-
-			makeColours(I.getIters());
-
-			I = makeImage(I);
-			lblMainImage.setIcon(new ImageIcon(I));
-			repaint();
+			try {
+				I.setIters(Integer.valueOf(txtIterationsVal.getText()));
+				
+				makeColours(I.getIters());
+				
+				I = makeImage(I);
+				lblMainImage.setIcon(new ImageIcon(I));
+				repaint();
+			} catch (Exception a) {
+				JOptionPane.showMessageDialog(null, "Failed to Repaint! Could be due to Iteration value not being valid!", "Failed", JOptionPane.ERROR_MESSAGE);
+			}
+			
 		}
 
 	}
 
 	@Override
 	public void windowClosed(WindowEvent e) {
+		
 		if (action.equals("colour1")) {
 			lblColour1Val.setBackground(cl.getColour());
 		}
+
 		if (action.equals("colour2")) {
 			lblColour2Val.setBackground(cl.getColour());
 		}
-
+		//Gets data from the Msaccess DB on Pc
 		if (action.equals("Import from Database")){
-			dbConnect db = new dbConnect();
-			Object[] data = db.getEntry(dbIn.getIndex());
-			System.out.println("Data from DB:" + Arrays.toString(data));
-			I = new MyImage((int)data[4],(int)data[5], BufferedImage.TYPE_INT_RGB, (int)data[3]);
-			I.calculatePlot(data);
-			new MyWindow(I);
-			this.dispose();
+			try {
+				int index = dbIn.getIndex();
+				dbConnect db = new dbConnect();
+				Object[] data = db.getEntry(index);
+				System.out.println("Data from DB:" + Arrays.toString(data));
+				I = new MyImage((int) data[4], (int) data[5], (int) data[3], BufferedImage.TYPE_INT_RGB);
+				I.calculatePlot(data);
+				new MyWindow(I);
+				this.dispose();
+			} catch (Exception a) {
+			
+			}
+			
 		}
 		
 		if(action.equals("New Juliaset")){
+			//Makes new julia based on the point clicked on the screen
 			makeJulia(cJw.getX1(), cJw.getY1());
+		}
+		
+		if (action.equals("New Mandelbrot")) {
+			this.dispose();
 		}
 
 	}
 	
 	protected void makeJulia(double x1, double y1){
-		
-		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), BufferedImage.TYPE_INT_RGB, I.getIters());
+		//Calculates a julia set image and then passes it to the julia window
+		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), I.getIters(), BufferedImage.TYPE_INT_RGB);
 		Itmp.calculatePlot(I.getPlotData());
-		Calculator calc = new Calculator(Itmp, colourArray, x1, y1);
+		calc = new Calculator(Itmp, colourArray, x1, y1);
 		int[][] tmp = calc.returnImageAsArray();
 		for(int x = 0; x < I.getWidth(); x++){
 			for(int y = 0; y < I.getHeight(); y++){
@@ -436,16 +447,16 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-
-		x1 = e.getX() ;//- lblMainImage.getX();
-		y1 = e.getY() ;//- lblMainImage.getY();
+		x1 = e.getX();
+		y1 = e.getY();
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		int x2 = e.getX();
+		//Making sure that the user has dragged or clicked
 		if(x2 == x1){
-		
+			makeJulia(I.convertX(x1), I.convertY(y1));
 		}else{
 			I.calculatePlot(I.convertX(x1), I.convertX(x2), I.convertY(y1));
 			I = makeImage(I);
@@ -457,10 +468,11 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	}
 
 	public MyImage makeImage(MyImage I){
-		MyImage Itmp = new MyImage(I.getWidth(),I.getHeight(), BufferedImage.TYPE_INT_RGB, I.getIters());
+		//Makes a new image based on the image being passed to it.
+		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), I.getIters(), BufferedImage.TYPE_INT_RGB);
 		Itmp.calculatePlot(I.getPlotData());
 		makeColours(I.getIters());
-		Calculator calc = new Calculator(I, colourArray);
+		calc = new Calculator(I, colourArray);
 		
 		int[][] tmp = calc.returnImageAsArray();
 		for(int x = 0; x < windowWidth; x++){
@@ -473,7 +485,8 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	
 	protected void makeColours(int iters) {
         colourArray = new int[iters];
-
+		
+		//Bit of a meh way, but at init checkGradient is null and will therefore always make the default gradient
 		if(checkGradient == null){
 			for (int i = 0; i < iters; i++) {
 				colourArray[i] = Color.HSBtoRGB((float) i / iters, 0.5F, 1);
@@ -484,9 +497,10 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 			float[] hsb1 = Color.RGBtoHSB(cl1.getRed(), cl1.getGreen(), cl1.getBlue(), null);
 			float[] hsb2 = Color.RGBtoHSB(cl2.getRed(), cl2.getGreen(), cl2.getBlue(), null);
-
+			//Used seperate method to keep this section cleaner
 			colourArray = makeGradient(hsb1, hsb2, I.getIters());
 		}else{
+			//will default to this gradient as a base case
 			for (int i = 0; i < iters; i++) {
 				colourArray[i] = Color.HSBtoRGB((float) i / iters, 0.5F, 1);
 			}
@@ -494,6 +508,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
     }
 
     private int[] makeGradient(float[] cl1, float[] cl2, int steps){
+		//Colour calculations to make a gradient between two random colours:
 		float rangeH = (cl2[0] - cl1[0]);
 		float stepH = rangeH/steps;
 
@@ -522,37 +537,31 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	
 	@Override
 	public void windowActivated(WindowEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void windowClosing(WindowEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void windowDeactivated(WindowEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void windowDeiconified(WindowEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void windowIconified(WindowEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void windowOpened(WindowEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 

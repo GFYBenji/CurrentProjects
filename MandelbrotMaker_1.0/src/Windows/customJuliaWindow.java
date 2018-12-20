@@ -1,6 +1,3 @@
-/*
- * Created by JFormDesigner on Tue Dec 18 10:49:18 GMT 2018
- */
 
 package Windows;
 

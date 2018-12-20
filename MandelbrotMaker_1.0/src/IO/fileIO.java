@@ -22,7 +22,6 @@ public class fileIO {
 		try{
 			System.out.println("Outputting image...");
 			dir += ".png";
-			System.out.println("new dir:"+dir);
 			ImageIO.write(image, "png", new File(dir));
 		}catch(IOException e){
 			e.printStackTrace();
@@ -33,7 +32,7 @@ public class fileIO {
 		//FILE PATH NEEDS FILE FORMAT ON THE END!!!!
 	}
 	
-	private String dirChooser() {
+	public String dirChooser() {
 		JFileChooser jfc = new JFileChooser();
 		//int retVal = jfc.showSaveDialog(null);
 		jfc.showSaveDialog(null);
@@ -45,6 +44,10 @@ public class fileIO {
 			return null;
 		}
 		
+	}
+	
+	public String getDir() {
+		return dir;
 	}
 	
 }

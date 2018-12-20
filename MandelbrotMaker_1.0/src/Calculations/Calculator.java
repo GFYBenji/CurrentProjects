@@ -113,9 +113,9 @@ public class Calculator {
 	private void juliaCalc(int[][] arr, int xStart, int xEnd) {
 		double zIm, zRe, tmp;
 		for(int y = 0; y < I.getHeight(); y++){
-	        double yStart = I.convertY(y); //convert Y up here to be 25% faster(at 200 iterations)
+			double yStart = I.convertY(y);
 	        for (int x = 0; x < I.getWidth(); x ++){
-	            zIm = yStart; //I.convertY(y);
+				zIm = yStart;
 	            zRe = I.convertX(x);
 	            int iter = 0;
 	            while ((zRe * zRe + zIm * zIm) < 4 && iter < MAX_ITER - 1) {

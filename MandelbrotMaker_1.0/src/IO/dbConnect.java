@@ -1,14 +1,12 @@
 package IO;
 
-import java.io.File;
-import java.io.IOException;
+import Windows.mainMenu;
+
 import java.sql.*;
 
 public class dbConnect {
 
 	private final int tableColumns = 8;
-	//private String msAccDB = "E:/dbStuff/src/dbStuff/Storage.accdb";
-	//private String dbURL = "jdbc:ucanaccess://" + msAccDB;
 	private String dbURL, msAccDB, path;
 	
 	public dbConnect() {
@@ -19,13 +17,7 @@ public class dbConnect {
 			e.printStackTrace();
 		}
 		
-		try{
-			path = new File(".").getCanonicalPath().replace('\\', '/');
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-		msAccDB = path + "/Storage.accdb";
-		dbURL = "jdbc:ucanaccess://" + msAccDB;
+		dbURL = "jdbc:ucanaccess://" + mainMenu.dbPath;
 	}
 	
 	public void newEntry(Object[] data, String name) {
@@ -68,16 +60,9 @@ public class dbConnect {
 			resultSet = statement.executeQuery("SELECT * FROM FRACTALS WHERE ID = " + rowIndex);
 			resultSet.next();
 			
-			rowItems[0] = resultSet.getDouble(3);
-			rowItems[1] = resultSet.getDouble(4);
-			rowItems[2] = resultSet.getDouble(5);
-			rowItems[3] = resultSet.getInt(6);
-			rowItems[4] = resultSet.getInt(7);
-			rowItems[5] = resultSet.getInt(8);
-			
-			/*for(int i = 0; i < 6; i++){
-				rowItems[i] = resultSet.getObject(i+3); //Doesn't work as for some reason Java thinks is a double when is object and then cannot convert to int
-			}*/
+			for (int i = 0; i < 6; i++) {
+				rowItems[i] = resultSet.getObject(i + 3);
+			}
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -112,14 +97,7 @@ public class dbConnect {
 			data = new Object[numOfRows][tableColumns];
 			int currentRow = 0;
 			while(resultSet.next()) {
-				/*data[currentRow][0] = resultSet.getInt(1);
-				data[currentRow][1] = resultSet.getString(2);
-				data[currentRow][2] = resultSet.getDouble(3);
-				data[currentRow][3] = resultSet.getDouble(4);
-				data[currentRow][4] = resultSet.getDouble(5);
-				data[currentRow][5] = resultSet.getInt(6);
-				data[currentRow][6] = resultSet.getInt(7);
-				data[currentRow][7] = resultSet.getInt(8);*/
+				
 				for(int i = 0; i < tableColumns; i++){
 					data[currentRow][i] = resultSet.getObject(i+1);
 				}

@@ -1,6 +1,3 @@
-/*
- * Created by JFormDesigner on Fri Dec 07 15:26:22 GMT 2018
- */
 
 package Windows;
 
@@ -111,7 +108,7 @@ public class importFromDBWindow extends JFrame implements ActionListener {
             this.dispose();
         }
         if(e.getSource() == cancelButton){
-
+            this.dispose();
         }
     }
 

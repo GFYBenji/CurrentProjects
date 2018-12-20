@@ -1,10 +1,8 @@
-/*
- * Created by JFormDesigner on Fri Dec 14 14:12:51 GMT 2018
- */
 
 package Windows;
 
 import Calculations.MyImage;
+import IO.fileIO;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -14,10 +12,15 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 
 public class mainMenu extends JFrame implements ChangeListener, ActionListener {
 	
+	public static String dbPath;
+	private String msAccDB, path;
+	//Window Components
 	private JPanel dialogPane;
 	private JPanel panel2;
 	private JLabel lblResolution;
@@ -38,7 +41,7 @@ public class mainMenu extends JFrame implements ChangeListener, ActionListener {
 		this.setResizable(false);
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.setVisible(true);
-		
+		checkDBFile();
 	}
 
 	private void initComponents() {
@@ -166,25 +169,40 @@ public class mainMenu extends JFrame implements ChangeListener, ActionListener {
 		String res = txtOneByOne.getText().replaceAll("\\d", "").replace(" ", "");
 		boolean isValid = true;
 		if(!iters.equals("") ||  txtIterations.getText().equals("")){
-			JOptionPane.showMessageDialog(null, "Enter a valid number for iterations (Must be an integer)!", "Failed", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Enter a valid number for iterations (Must be an integer)!", "Failed", JOptionPane.ERROR_MESSAGE);
 			isValid = false;
 		}
 		if(!res.equals("") || txtOneByOne.getText().equals("") && checkRatio.isSelected()){
-			JOptionPane.showMessageDialog(null, "Enter a valid number for resolution (Must be an integer)!", "Failed", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Enter a valid number for resolution (Must be an integer)!", "Failed", JOptionPane.ERROR_MESSAGE);
 			isValid = false;
 		}
 		if(isValid){
 			if(checkRatio.isSelected()){
-				MyImage I = new MyImage(Integer.valueOf(txtOneByOne.getText()),Integer.valueOf(txtOneByOne.getText()), BufferedImage.TYPE_INT_RGB, Integer.valueOf(txtIterations.getText()));
+				MyImage I = new MyImage(Integer.valueOf(txtOneByOne.getText()), Integer.valueOf(txtOneByOne.getText()), Integer.valueOf(txtIterations.getText()), BufferedImage.TYPE_INT_RGB);
 				I.calculatePlot(-2,2,2);
 				new MyWindow(I);
 			}else{
 				String[] xy = resolutions[dropResolutions.getSelectedIndex()].split("x");
-				MyImage I = new MyImage(Integer.valueOf(xy[0]),Integer.valueOf(xy[1]), BufferedImage.TYPE_INT_RGB, Integer.valueOf(txtIterations.getText()));
-				I.calculatePlot(-2,2,2);
+				MyImage I = new MyImage(Integer.valueOf(xy[0]), Integer.valueOf(xy[1]), Integer.valueOf(txtIterations.getText()), BufferedImage.TYPE_INT_RGB);
+				I.calculatePlot(-2, 2, 1.125);
 				new MyWindow(I);
 			}
 			this.dispose();
+		}
+	}
+	
+	private void checkDBFile() {
+		try {
+			path = new File(".").getCanonicalPath().replace('\\', '/');
+			msAccDB = path + "/Storage.accdb";
+			File f = new File(msAccDB);
+			if (!f.isFile() || !f.exists() && !f.isDirectory()) {
+				JOptionPane.showMessageDialog(null, "Unable to find DB, please select a correctly formatted MsAcces DB!", "Failed", JOptionPane.ERROR_MESSAGE);
+				msAccDB = new fileIO().getDir();
+			}
+			dbPath = msAccDB;
+		} catch (IOException e) {
+		
 		}
 	}
 }
