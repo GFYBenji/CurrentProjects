@@ -19,6 +19,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		windowWidth = image.getWidth();
 		I = makeImage(image);
 		initComponents();
+		
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setResizable(false);
 		this.setVisible(true);
@@ -31,6 +32,7 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 	private MyImage I;
 	private int x1, y1;
 	private Calculator calc;
+	
 	
 	//Windows
 	private ColourPicker cl;
@@ -320,6 +322,81 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		pack();
 		setLocationRelativeTo(getOwner());
 	}
+	
+	protected MyImage makeImage(MyImage I) {
+		//Makes a new image based on the image being passed to it.
+		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), I.getIters(), BufferedImage.TYPE_INT_RGB);
+		Itmp.calculatePlot(I.getPlotData());
+		makeColours(I.getIters());
+		calc = new Calculator(I, colourArray);
+		
+		int[][] tmp = calc.returnImageAsArray();
+		for (int x = 0; x < windowWidth; x++) {
+			for (int y = 0; y < windowHeight; y++) {
+				Itmp.setRGB(x, y, tmp[x][y]);
+			}
+		}
+		return Itmp;
+	}
+	
+	protected void makeJulia(double x1, double y1) {
+		//Calculates a julia set image and then passes it to the julia window
+		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), I.getIters(), BufferedImage.TYPE_INT_RGB);
+		Itmp.calculatePlot(I.getPlotData());
+		calc = new Calculator(Itmp, colourArray, x1, y1);
+		int[][] tmp = calc.returnImageAsArray();
+		for (int x = 0; x < I.getWidth(); x++) {
+			for (int y = 0; y < I.getHeight(); y++) {
+				Itmp.setRGB(x, y, tmp[x][y]);
+			}
+		}
+		new juliaWindow(Itmp);
+	}
+	
+	protected void makeColours(int iters) {
+		colourArray = new int[iters];
+		
+		//Bit of a meh way, but when screen is initially shown checkGradient is null and will therefore always make the default gradient
+		if (checkGradient == null) {
+			for (int i = 0; i < iters; i++) {
+				colourArray[i] = Color.HSBtoRGB((float) i / iters, 0.5F, 1);
+			}
+		} else if (checkGradient.isSelected()) {
+			Color cl1 = lblColour1Val.getBackground();
+			Color cl2 = lblColour2Val.getBackground();
+			
+			float[] hsb1 = Color.RGBtoHSB(cl1.getRed(), cl1.getGreen(), cl1.getBlue(), null);
+			float[] hsb2 = Color.RGBtoHSB(cl2.getRed(), cl2.getGreen(), cl2.getBlue(), null);
+			//Used separate method to keep this section cleaner
+			colourArray = makeGradient(hsb1, hsb2, I.getIters());
+		} else {
+			//will default to this gradient as a base case
+			for (int i = 0; i < iters; i++) {
+				colourArray[i] = Color.HSBtoRGB((float) i / iters, 0.5F, 1);
+			}
+		}
+	}
+	
+	protected int[] makeGradient(float[] cl1, float[] cl2, int steps) {
+		//Colour calculations to make a gradient between two random colours:
+		float rangeH = (cl2[0] - cl1[0]);
+		float stepH = rangeH / steps;
+		
+		float rangeS = (cl2[1] - cl1[1]);
+		float stepS = rangeS / steps;
+		
+		float rangeB = (cl2[2] - cl1[2]);
+		float stepB = rangeB / steps;
+		
+		int[] colours = new int[steps];
+		for (int i = 0; i < steps; i++) {
+			float hue = cl1[0] + i * stepH;
+			float saturation = cl1[1] + i * stepS;
+			float brightness = cl1[2] + i * stepB;
+			colours[i] = Color.HSBtoRGB(hue, saturation, brightness);
+		}
+		return colours;
+	}
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
@@ -328,7 +405,6 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			lblColour2Val.setEnabled(checkGradient.isSelected());
 			lblColour1Val.setEnabled(checkGradient.isSelected());
 		}
-
 	}
 
 	@Override
@@ -383,7 +459,6 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			}
 			
 		}
-
 	}
 
 	@Override
@@ -421,21 +496,6 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 		if (action.equals("New Mandelbrot")) {
 			this.dispose();
 		}
-
-	}
-	
-	protected void makeJulia(double x1, double y1){
-		//Calculates a julia set image and then passes it to the julia window
-		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), I.getIters(), BufferedImage.TYPE_INT_RGB);
-		Itmp.calculatePlot(I.getPlotData());
-		calc = new Calculator(Itmp, colourArray, x1, y1);
-		int[][] tmp = calc.returnImageAsArray();
-		for(int x = 0; x < I.getWidth(); x++){
-			for(int y = 0; y < I.getHeight(); y++){
-				Itmp.setRGB(x,y,tmp[x][y]);
-			}
-		}
-		new juliaWindow(Itmp);
 	}
 	
 	@Override
@@ -453,8 +513,8 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		int x2 = e.getX();
 		//Making sure that the user has dragged or clicked
+		int x2 = e.getX();
 		if(x2 == x1){
 			makeJulia(I.convertX(x1), I.convertY(y1));
 		}else{
@@ -463,69 +523,11 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 			lblMainImage.setIcon(new ImageIcon(I));
 			repaint();
 		}
-		
-		
-	}
-
-	public MyImage makeImage(MyImage I){
-		//Makes a new image based on the image being passed to it.
-		MyImage Itmp = new MyImage(I.getWidth(), I.getHeight(), I.getIters(), BufferedImage.TYPE_INT_RGB);
-		Itmp.calculatePlot(I.getPlotData());
-		makeColours(I.getIters());
-		calc = new Calculator(I, colourArray);
-		
-		int[][] tmp = calc.returnImageAsArray();
-		for(int x = 0; x < windowWidth; x++){
-			for(int y = 0; y < windowHeight; y++){
-				Itmp.setRGB(x,y, tmp[x][y]);
-			}
-		}
-		return Itmp;
 	}
 	
-	protected void makeColours(int iters) {
-        colourArray = new int[iters];
-		
-		//Bit of a meh way, but at init checkGradient is null and will therefore always make the default gradient
-		if(checkGradient == null){
-			for (int i = 0; i < iters; i++) {
-				colourArray[i] = Color.HSBtoRGB((float) i / iters, 0.5F, 1);
-			}
-		}else if(checkGradient.isSelected()){
-			Color cl1 = lblColour1Val.getBackground();
-			Color cl2 = lblColour2Val.getBackground();
-
-			float[] hsb1 = Color.RGBtoHSB(cl1.getRed(), cl1.getGreen(), cl1.getBlue(), null);
-			float[] hsb2 = Color.RGBtoHSB(cl2.getRed(), cl2.getGreen(), cl2.getBlue(), null);
-			//Used seperate method to keep this section cleaner
-			colourArray = makeGradient(hsb1, hsb2, I.getIters());
-		}else{
-			//will default to this gradient as a base case
-			for (int i = 0; i < iters; i++) {
-				colourArray[i] = Color.HSBtoRGB((float) i / iters, 0.5F, 1);
-			}
-		}
-    }
-
-    private int[] makeGradient(float[] cl1, float[] cl2, int steps){
-		//Colour calculations to make a gradient between two random colours:
-		float rangeH = (cl2[0] - cl1[0]);
-		float stepH = rangeH/steps;
-
-		float rangeS = (cl2[1] - cl1[1]);
-		float stepS = rangeS/steps;
-
-		float rangeB = (cl2[2] - cl1[2]);
-		float stepB = rangeB/steps;
-
-		int[] colours = new int[steps];
-		for(int i = 0; i < steps; i++){
-			float hue = cl1[0] + i*stepH;
-			float saturation = cl1[1] + i*stepS;
-			float brightness = cl1[2] + i*stepB;
-			colours[i] = Color.HSBtoRGB(hue, saturation, brightness);
-		}
-		return colours;
+	@Override
+	public void mouseDragged(MouseEvent e) {
+	
 	}
 
 	// region Unused Methods
@@ -572,11 +574,6 @@ public class MyWindow extends JFrame implements ActionListener, ChangeListener, 
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
 
 	}
 	// endregion
