@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class Calculator {
-	private static final int cores = Runtime.getRuntime().availableProcessors() ;//-1;
+	private static final int cores = Runtime.getRuntime().availableProcessors() * 5;//-1;
 	private int[][] imageArray;
 	private int MAX_ITER;
 	private MyImage I;
